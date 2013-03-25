@@ -3,7 +3,7 @@
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>tr.com.serkanozal</groupId>
   	<artifactId>jillegal-demo</artifactId>
-  	<version>1.0.0-RELEASE</version>
+  	<version>1.0.1-RELEASE</version>
     <name>Jillegal-Demo</name>
     <url>https://github.com/serkan-ozal/jillegal-demo</url>
     
@@ -18,7 +18,7 @@
         <maven.resources.plugin.version>2.4</maven.resources.plugin.version>
         <maven.surefire.plugin.version>2.9</maven.surefire.plugin.version>
         
-        <jillegal.version>1.0.0-RELEASE</jillegal.version>
+        <jillegal.version>1.0.1-RELEASE</jillegal.version>
 
     </properties>
   
