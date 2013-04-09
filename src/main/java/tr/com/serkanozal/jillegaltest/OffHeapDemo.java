@@ -8,21 +8,24 @@
 package tr.com.serkanozal.jillegaltest;
 
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.SequentialObjectPoolCreateParameterBuilder;
-import tr.com.serkanozal.jillegal.offheap.pool.SequentialObjectPool;
+import tr.com.serkanozal.jillegal.offheap.domain.model.pool.SequentialObjectPoolCreateParameter.SequentialObjectPoolReferenceType;
+import tr.com.serkanozal.jillegal.offheap.pool.EagerReferencedObjectPool;
+import tr.com.serkanozal.jillegal.offheap.pool.LazyReferencedObjectPool;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapService;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapServiceFactory;
 
 public class OffHeapDemo {
 
 	public static void main(String[] args) throws Exception {
-		final int OBJECT_COUNT = 10000;
+		final int OBJECT_COUNT = 2;
 
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
-		SequentialObjectPool<SampleClass> sequentialObjectPool = 
+		EagerReferencedObjectPool<SampleClass> sequentialObjectPool = 
 				offHeapService.createOffHeapPool(
 						new SequentialObjectPoolCreateParameterBuilder<SampleClass>().
 								type(SampleClass.class).
 								objectCount(OBJECT_COUNT).
+								referenceType(SequentialObjectPoolReferenceType.EAGER_REFERENCED).
 							build()
 				);
    
