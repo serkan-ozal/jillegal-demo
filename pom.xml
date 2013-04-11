@@ -6,7 +6,7 @@
   	<version>1.0.1-RELEASE</version>
     <name>Jillegal-Demo</name>
     <url>https://github.com/serkan-ozal/jillegal-demo</url>
-    
+     
   	<properties>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

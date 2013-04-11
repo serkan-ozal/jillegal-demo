@@ -11,16 +11,34 @@ import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.SequentialObjectPo
 import tr.com.serkanozal.jillegal.offheap.domain.model.pool.SequentialObjectPoolCreateParameter.SequentialObjectPoolReferenceType;
 import tr.com.serkanozal.jillegal.offheap.pool.EagerReferencedObjectPool;
 import tr.com.serkanozal.jillegal.offheap.pool.LazyReferencedObjectPool;
+import tr.com.serkanozal.jillegal.offheap.pool.RandomAccessOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapService;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapServiceFactory;
 
 public class OffHeapDemo {
 
+	final static int OBJECT_COUNT = 1000;
+	
 	public static void main(String[] args) throws Exception {
-		final int OBJECT_COUNT = 2;
-
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
-		EagerReferencedObjectPool<SampleClass> sequentialObjectPool = 
+		
+		
+		
+		LazyReferencedObjectPool<SampleClass> lazyReferencedSequentialObjectPool = 
+				offHeapService.createOffHeapPool(
+						new SequentialObjectPoolCreateParameterBuilder<SampleClass>().
+								type(SampleClass.class).
+								objectCount(OBJECT_COUNT).
+								referenceType(SequentialObjectPoolReferenceType.LAZY_REFERENCED).
+							build()
+				);
+		System.out.println("Lazy Referenced Sequential Off Heap ObjectPool for class " + 
+				SampleClass.class.getName() + " has been allocated ...");
+		runDemoForObjectPool(lazyReferencedSequentialObjectPool);
+		System.out.println("\n\n");
+		
+		
+		EagerReferencedObjectPool<SampleClass> eagerReferencedSequentialObjectPool = 
 				offHeapService.createOffHeapPool(
 						new SequentialObjectPoolCreateParameterBuilder<SampleClass>().
 								type(SampleClass.class).
@@ -28,20 +46,23 @@ public class OffHeapDemo {
 								referenceType(SequentialObjectPoolReferenceType.EAGER_REFERENCED).
 							build()
 				);
-   
-		System.out.println("Off heap object pool for class " + SampleClass.class.getName() + " has been allocated ...");
-		
+		System.out.println("Eager Referenced Sequential Off Heap ObjectPool for class " + 
+				SampleClass.class.getName() + " has been allocated ...");
+		runDemoForObjectPool(eagerReferencedSequentialObjectPool);
+		System.out.println("\n\n");
+	}
+	
+	private static void runDemoForObjectPool(RandomAccessOffHeapPool<SampleClass , ?> offHeapPool) {
     	for (int i = 0; i < OBJECT_COUNT; i++) {
-    		SampleClass obj = sequentialObjectPool.newObject();
+    		SampleClass obj = offHeapPool.newObject();
     		obj.setOrder(i);
     		System.out.println("New object has been retrieved from off heap pool and set order value to " + i);
     	}
     	
     	for (int i = 0; i < OBJECT_COUNT; i++) {
-    		SampleClass obj = sequentialObjectPool.getObject(i);
+    		SampleClass obj = offHeapPool.getObject(i);
     		System.out.println("Order value of " + i + ". object at off heap pool: " + obj.getOrder());
     	}
-    	
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////

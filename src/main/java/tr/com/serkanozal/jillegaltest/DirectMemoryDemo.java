@@ -55,42 +55,6 @@ public class DirectMemoryDemo {
 		
 		System.out.println("Value of i on targetObject: " + objTarget.getI());
 		System.out.println("Value of l on targetObject: " + objTarget.getL());
-		
-		SampleClass[] sampleObjectArray = new SampleClass[100];
-		sampleObjectArray[0] = new SampleClass();
-		sampleObjectArray[1] = new SampleClass();
-System.out.println(Long.toHexString(directMemoryService.addressOf(sampleObjectArray[0]) >> 3) );
-System.out.println(Long.toHexString(directMemoryService.addressOf(sampleObjectArray[1]) >> 3) );
-		SampleClass sc = new SampleClass();
-
-		//c1 0f 69 ff : 1111 1111 0110 1001 0000 1111 1100 0001 
-		//4b 13 69 ff : 1111 1111 0110 1001 0001 0011 0100 1011 
-
-		System.out.println(Long.toHexString(directMemoryService.addressOfClass(SampleClass.class)));
-		
-		for (int i = 0; i < 100; i++) {
-			System.out.print(String.format("%02x ", directMemoryService.getByte(SampleClass.class, (long)i)));
-			if ((i + 1) % 16 == 0) {
-				System.out.println();
-			}
-		}
-		System.out.println("\n\n");
-
-		for (int i = 0; i < 100; i++) {
-		    System.out.print(String.format("%02x ", directMemoryService.getByte(sampleObjectArray, (long)i)));
-		    if ((i + 1) % 16 == 0) {
-		    	System.out.println();
-		    }
-		}
-		System.out.println("\n\n");
-
-		for (int i = 0; i < 100; i++) {
-		    System.out.print(String.format("%02x ", directMemoryService.getByte(sc, (long)i)));
-		    if ((i + 1) % 16 == 0) {
-		    	System.out.println();
-		    }
-		}
-		System.out.println("\n\n");
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
