@@ -23,21 +23,106 @@ import tr.com.serkanozal.jillegal.offheap.pool.impl.PrimitiveTypeArrayOffHeapPoo
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapService;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapServiceFactory;
 
+@SuppressWarnings("unused")
 public class OffHeapDemo {
 
-	private static final int ELEMENT_COUNT = 1000;
+	private static final int ELEMENT_COUNT = 10000000;
 	private static final int TOTAL_ELEMENT_COUNT = 10000;
 	
 	public static void main(String[] args) throws Exception {
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
 
-		demoLazyReferencedObjectOffHeapPool(offHeapService);
-		demoEagerReferencedObjectOffHeapPool(offHeapService);
-		demoComplexTypeArrayOffHeapPool(offHeapService);
-		demoPrimitiveTypeArrayOffHeapPool(offHeapService);
-		demoExtendableObjectOffHeapPoolWithLazyReferenceObjectOffHeapPool(offHeapService);
-		demoExtendableObjectOffHeapPoolWithEagerReferenceObjectOffHeapPool(offHeapService);
-		demoExtendableObjectOffHeapPoolWithDefaultObjectOffHeapPool(offHeapService);
+		demoObjectOffHeapPool(offHeapService);
+		
+//		demoLazyReferencedObjectOffHeapPool(offHeapService);
+//		demoEagerReferencedObjectOffHeapPool(offHeapService);
+//		demoComplexTypeArrayOffHeapPool(offHeapService);
+//		demoPrimitiveTypeArrayOffHeapPool(offHeapService);
+//		demoExtendableObjectOffHeapPoolWithLazyReferenceObjectOffHeapPool(offHeapService);
+//		demoExtendableObjectOffHeapPoolWithEagerReferenceObjectOffHeapPool(offHeapService);
+//		demoExtendableObjectOffHeapPoolWithDefaultObjectOffHeapPool(offHeapService);
+	}
+	
+	private static void demoObjectOffHeapPool(OffHeapService offHeapService) {
+		long start, finish;
+		long freeMemory1, freeMemory2;
+		
+		//////////////////////////////////////////////////////////////////////////////////////
+		
+		freeMemory1 = Runtime.getRuntime().freeMemory();
+		System.out.println("Free memory on heap before Off-Heap allocation: " + freeMemory1 + " bytes");
+		
+		start = System.currentTimeMillis();
+		
+		EagerReferencedObjectOffHeapPool<SampleClass> eagerReferencedSequentialObjectPool = 
+				offHeapService.createOffHeapPool(
+						new SequentialObjectOffHeapPoolCreateParameterBuilder<SampleClass>().
+								type(SampleClass.class).
+								objectCount(ELEMENT_COUNT).
+								referenceType(ObjectPoolReferenceType.EAGER_REFERENCED).
+							build());
+							
+		System.out.println("Sequential Off Heap Object Pool with size " + ELEMENT_COUNT + " for class " + 
+				SampleClass.class.getName() + " has been allocated ...");
+		
+		for (int i = 0; i < ELEMENT_COUNT; i++) {
+    		SampleClass obj = eagerReferencedSequentialObjectPool.get();
+    		obj.setOrder(i);
+    		obj.setLink(new SampleClass());
+    	}
+    	
+    	for (int i = 0; i < ELEMENT_COUNT; i++) {
+    		eagerReferencedSequentialObjectPool.getAt(i);
+    	}
+    	
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Sequential Off Heap Object Pool for class " + 
+				SampleClass.class.getName() + " has been allocated, got and set for " + 
+				ELEMENT_COUNT + " elements in " + (finish - start) + " milliseconds ...");
+		
+		freeMemory2 = Runtime.getRuntime().freeMemory();
+		System.out.println("Free memory on heap after Off-Heap allocation: " + freeMemory2 + " bytes");
+		
+		System.out.println("Memory used by Off-Heap allocation: " + (freeMemory2 - freeMemory1) + " bytes");
+		
+		//////////////////////////////////////////////////////////////////////////////////////
+		
+		System.out.println("\n");
+	
+		//////////////////////////////////////////////////////////////////////////////////////
+		
+		freeMemory1 = Runtime.getRuntime().freeMemory();
+		System.out.println("Free memory on heap before On-Heap allocation: " + freeMemory1 + " bytes");
+		
+		start = System.currentTimeMillis();
+		
+		SampleClass[] array = new SampleClass[ELEMENT_COUNT];
+		
+		System.out.println("Array for class with size " + ELEMENT_COUNT + " for class " +  
+				SampleClass.class.getName() + " has been allocated ...");
+		
+		for (int i = 0; i < ELEMENT_COUNT; i++) {
+    		SampleClass obj = new SampleClass();
+    		obj.setOrder(i);
+    		obj.setLink(new SampleClass());
+    		array[i] = obj;
+    	}
+		
+		for (int i = 0; i < ELEMENT_COUNT; i++) {
+    		SampleClass obj = array[i];
+    	}
+    	
+		finish = System.currentTimeMillis();
+		
+		System.out.println("Array for class " + 
+				SampleClass.class.getName() + " has been allocated, got and set for " + 
+				ELEMENT_COUNT + " elements in " + (finish - start) + " milliseconds ...");
+		
+		freeMemory2 = Runtime.getRuntime().freeMemory();
+		System.out.println("Free memory on heap after On-Heap allocation: " + freeMemory2 + " bytes");
+		
+		System.out.println("Memory used by On-Heap allocation: " + (freeMemory2 - freeMemory1) + " bytes");
 	}
 	
 	private static void demoLazyReferencedObjectOffHeapPool(OffHeapService offHeapService) {
@@ -253,6 +338,7 @@ public class OffHeapDemo {
 		private int i1 = 5;
 		private int i2 = 10;
 		private int order;
+		private SampleClass link;
 
 		public int getI1() {
 			return i1;
@@ -268,6 +354,14 @@ public class OffHeapDemo {
 		
 		public void setOrder(int order) {
 			this.order = order;
+		}
+		
+		public SampleClass getLink() {
+			return link;
+		}
+		
+		public void setLink(SampleClass link) {
+			this.link = link;
 		}
 
 	}
