@@ -42,7 +42,7 @@ public class OffHeapDemo {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// -XX:PermSize=512M -XX:MaxPermSize=1G -Xms2G -Xmx4G
+		// -Xms1G -Xmx1G -XX:+PrintGCDetails
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
 
 		demoObjectOffHeapPool(offHeapService);
@@ -143,6 +143,8 @@ public class OffHeapDemo {
 
 		DirectMemoryService directMemoryService = DirectMemoryServiceFactory.getDirectMemoryService();
 		
+		SampleClassWrapper wrapper = new SampleClassWrapper();
+		
 		SampleLinkClass link2 = new SampleLinkClass();
 		
 		List<SampleClass> list = new ArrayList<SampleClass>();
@@ -151,6 +153,7 @@ public class OffHeapDemo {
 			SampleClass obj = eagerReferencedObjectPool.get();
     		obj.setOrder(i);
     		obj.setLink(link2);
+    		wrapper.setSampleClass(obj);
     		list.add(obj);
     	}
 
@@ -160,10 +163,16 @@ public class OffHeapDemo {
     		SampleLinkClass link = obj.getLink();
     	}
     	
+    	JvmUtil.runGC();
+    	
+    	Thread.sleep(2000);
+    	
     	for (SampleClass obj : list) {
     		System.out.println(obj.getOrder());
     	}
 		
+    	System.out.println(wrapper.getSampleClass().getOrder());
+    	
 		finish = System.currentTimeMillis();
 		
 		System.out.println("Sequential Off Heap Object Pool for class " + 
@@ -384,7 +393,17 @@ public class OffHeapDemo {
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	
-	private static class SampleBaseClass {
+	private static class SampleClassWrapper {
+		
+		private SampleClass sampleClass;
+		
+		public SampleClass getSampleClass() {
+			return sampleClass;
+		}
+		
+		public void setSampleClass(SampleClass sampleClass) {
+			this.sampleClass = sampleClass;
+		}
 		
 	}
 
