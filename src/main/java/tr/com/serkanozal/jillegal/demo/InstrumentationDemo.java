@@ -16,8 +16,8 @@ import tr.com.serkanozal.jillegal.instrument.Instrumenter;
 import tr.com.serkanozal.jillegal.instrument.domain.model.GeneratedClass;
 import tr.com.serkanozal.jillegal.instrument.interceptor.constructor.BeforeConstructorInterceptor;
 import tr.com.serkanozal.jillegal.instrument.interceptor.method.BeforeMethodInterceptor;
-import tr.com.serkanozal.jillegal.instrument.service.InstrumenterService;
-import tr.com.serkanozal.jillegal.instrument.service.InstrumenterServiceFactory;
+import tr.com.serkanozal.jillegal.instrument.service.InstrumentService;
+import tr.com.serkanozal.jillegal.instrument.service.InstrumentServiceFactory;
 
 public class InstrumentationDemo {
 
@@ -36,8 +36,8 @@ public class InstrumentationDemo {
 		System.out.println("After Intrumentation: ");
 		System.out.println("=====================================================");
 		
-        InstrumenterService instrumenterService = InstrumenterServiceFactory.getInstrumenterService();
-        Instrumenter<SampleClass> inst = instrumenterService.getInstrumenter(SampleClass.class);
+        InstrumentService instrumentService = InstrumentServiceFactory.getInstrumentService();
+        Instrumenter<SampleClass> inst = instrumentService.getInstrumenter(SampleClass.class);
         GeneratedClass<SampleClass> redefinedClass =
         		
                 inst.
@@ -64,7 +64,7 @@ public class InstrumentationDemo {
                     			
                  build();
 
-        instrumenterService.redefineClass(redefinedClass); 
+        instrumentService.redefineClass(redefinedClass); 
 
         SampleClass obj2 = new SampleClass();
         obj2.methodToIntercept();

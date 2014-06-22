@@ -29,7 +29,6 @@ import tr.com.serkanozal.jillegal.offheap.pool.impl.PrimitiveTypeArrayOffHeapPoo
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapService;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapServiceFactory;
 import tr.com.serkanozal.jillegal.util.JvmUtil;
-import tr.com.serkanozal.jillegal.util.MemoryUtil;
 
 @SuppressWarnings("unused")
 public class OffHeapDemo {
@@ -42,7 +41,7 @@ public class OffHeapDemo {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// -Xms1G -Xmx1G -XX:+PrintGCDetails
+		// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails 
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
 
 		demoObjectOffHeapPool(offHeapService);
@@ -60,9 +59,6 @@ public class OffHeapDemo {
 		long start, finish;
 		long usedMemory1, usedMemory2;
 
-		//MemoryUtil.pinClass(SampleClass.class);
-		//MemoryUtil.pinObject(SampleClass.class);
-		
 		//////////////////////////////////////////////////////////////////////////////////////
 		
 		JvmUtil.runGC();
@@ -147,14 +143,14 @@ public class OffHeapDemo {
 		
 		SampleLinkClass link2 = new SampleLinkClass();
 		
-		List<SampleClass> list = new ArrayList<SampleClass>();
+		//List<SampleClass> list = new ArrayList<SampleClass>();
 
 		for (int i = 0; i < ELEMENT_COUNT; i++) {
 			SampleClass obj = eagerReferencedObjectPool.get();
     		obj.setOrder(i);
     		obj.setLink(link2);
     		wrapper.setSampleClass(obj);
-    		list.add(obj);
+    		//list.add(obj);
     	}
 
 		SampleClass[] objArray = eagerReferencedObjectPool.getObjectArray();
@@ -167,11 +163,13 @@ public class OffHeapDemo {
     	
     	Thread.sleep(2000);
     	
+    	/*
     	for (SampleClass obj : list) {
     		System.out.println(obj.getOrder());
     	}
-		
-    	System.out.println(wrapper.getSampleClass().getOrder());
+		*/
+    	
+    	//System.out.println(wrapper.getSampleClass().getOrder());
     	
 		finish = System.currentTimeMillis();
 		
@@ -238,7 +236,7 @@ public class OffHeapDemo {
 	}
 
 	private static void demoComplexTypeArrayOffHeapPool(OffHeapService offHeapService) {
-		ComplexTypeArrayOffHeapPool<SampleClass> complexTypeArrayPoolWithNoInit = 
+		ComplexTypeArrayOffHeapPool<SampleClass, SampleClass[]> complexTypeArrayPoolWithNoInit = 
 				offHeapService.createOffHeapPool(
 						new ArrayOffHeapPoolCreateParameterBuilder<SampleClass>().
 								type(SampleClass.class).
@@ -413,10 +411,6 @@ public class OffHeapDemo {
 		private int i2 = 10;
 		private int order;
 		private SampleLinkClass link;
-		
-		public SampleClass() {
-			
-		}
 
 		public int getI1() {
 			return i1;
