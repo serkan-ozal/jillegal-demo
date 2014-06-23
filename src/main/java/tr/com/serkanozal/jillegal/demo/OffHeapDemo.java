@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tr.com.serkanozal.jillegal.Jillegal;
+import tr.com.serkanozal.jillegal.config.annotation.JillegalAware;
+import tr.com.serkanozal.jillegal.offheap.config.provider.annotation.OffHeapArray;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ArrayOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.DefaultExtendableObjectOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ExtendableObjectOffHeapPoolCreateParameterBuilder;
@@ -40,34 +42,54 @@ public class OffHeapDemo {
 		Jillegal.init();
 	}
 	
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails 
 	public static void main(String[] args) throws Exception {
-		// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails 
+		final int TEST_STEP_COUNT = 1;
+		
 		OffHeapService offHeapService = OffHeapServiceFactory.getOffHeapService();
 
-		demoObjectOffHeapPool(offHeapService);
-		
-//		demoLazyReferencedObjectOffHeapPool(offHeapService);
-//		demoEagerReferencedObjectOffHeapPool(offHeapService);
-//		demoComplexTypeArrayOffHeapPool(offHeapService);
-//		demoPrimitiveTypeArrayOffHeapPool(offHeapService);
-//		demoExtendableObjectOffHeapPoolWithLazyReferenceObjectOffHeapPool(offHeapService);
-//		demoExtendableObjectOffHeapPoolWithEagerReferenceObjectOffHeapPool(offHeapService);
-//		demoExtendableObjectOffHeapPoolWithDefaultObjectOffHeapPool(offHeapService);
+		switch (TEST_STEP_COUNT) {
+			case 1:
+				demoObjectOffHeapPool(offHeapService);
+				break;
+			case 2:
+				demoJillegalAwareOffHeap(offHeapService);				
+				break;				
+			case 3:
+				demoLazyReferencedObjectOffHeapPool(offHeapService);	
+				break;	
+			case 4:
+				demoEagerReferencedObjectOffHeapPool(offHeapService);
+				break;
+			case 5:
+				demoComplexTypeArrayOffHeapPool(offHeapService);
+				break;
+			case 6:
+				demoPrimitiveTypeArrayOffHeapPool(offHeapService);
+				break;	
+			case 7:
+				demoExtendableObjectOffHeapPoolWithLazyReferenceObjectOffHeapPool(offHeapService);
+				break;	
+			case 8:
+				demoExtendableObjectOffHeapPoolWithEagerReferenceObjectOffHeapPool(offHeapService);
+				break;	
+			case 9:
+				demoExtendableObjectOffHeapPoolWithDefaultObjectOffHeapPool(offHeapService);
+				break;	
+		}	
 	}
 	
 	private static void demoObjectOffHeapPool(OffHeapService offHeapService) throws Exception {
 		long start, finish;
 		long usedMemory1, usedMemory2;
 
-		//////////////////////////////////////////////////////////////////////////////////////
-		
-		JvmUtil.runGC();
-		
-		Thread.sleep(2000);
+		MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
 		
 		//////////////////////////////////////////////////////////////////////////////////////
 
-		MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+		JvmUtil.runGC();
+		
+		Thread.sleep(2000);
 		
 		usedMemory1 = memoryBean.getHeapMemoryUsage().getUsed();
 		System.out.println("Used memory on heap before On-Heap allocation: " + usedMemory1 + " bytes");
@@ -108,8 +130,6 @@ public class OffHeapDemo {
 		
 		System.out.println("\n");
 		
-		//////////////////////////////////////////////////////////////////////////////////////
-		
 		JvmUtil.runGC();
 		
 		Thread.sleep(2000);
@@ -126,6 +146,16 @@ public class OffHeapDemo {
 		
 		offHeapService.makeOffHeapable(SampleClass.class);
 		
+		offHeapService.newObject(SampleClass.class);
+
+		DirectMemoryService directMemoryService = DirectMemoryServiceFactory.getDirectMemoryService();
+		
+		SampleClassWrapper wrapper = new SampleClassWrapper();
+		
+		SampleLinkClass link2 = new SampleLinkClass();
+		
+		//List<SampleClass> list = new ArrayList<SampleClass>();
+
 		usedMemory1 = memoryBean.getHeapMemoryUsage().getUsed();
 		System.out.println("Used memory on heap before Off-Heap allocation: " + usedMemory1 + " bytes");
 		
@@ -137,14 +167,6 @@ public class OffHeapDemo {
 		System.out.println("Sequential Off Heap Object Pool with size " + ELEMENT_COUNT + " for class " + 
 				SampleClass.class.getName() + " has been allocated ...");
 
-		DirectMemoryService directMemoryService = DirectMemoryServiceFactory.getDirectMemoryService();
-		
-		SampleClassWrapper wrapper = new SampleClassWrapper();
-		
-		SampleLinkClass link2 = new SampleLinkClass();
-		
-		//List<SampleClass> list = new ArrayList<SampleClass>();
-
 		for (int i = 0; i < ELEMENT_COUNT; i++) {
 			SampleClass obj = eagerReferencedObjectPool.get();
     		obj.setOrder(i);
@@ -152,16 +174,12 @@ public class OffHeapDemo {
     		wrapper.setSampleClass(obj);
     		//list.add(obj);
     	}
-
+		
 		SampleClass[] objArray = eagerReferencedObjectPool.getObjectArray();
     	for (int i = 0; i < objArray.length; i++) {
     		SampleClass obj = objArray[i];
     		SampleLinkClass link = obj.getLink();
     	}
-    	
-    	JvmUtil.runGC();
-    	
-    	Thread.sleep(2000);
     	
     	/*
     	for (SampleClass obj : list) {
@@ -181,6 +199,28 @@ public class OffHeapDemo {
 		System.out.println("Used memory on heap after Off-Heap allocation: " + usedMemory2 + " bytes");
 		
 		System.out.println("Memory used by Off-Heap allocation: " + (usedMemory2 - usedMemory1) + " bytes");
+	}
+	
+	private static void demoJillegalAwareOffHeap(OffHeapService offHeapService) throws Exception {
+		System.out.println("Object Array Off-Heap Pool for class " + SampleClass.class.getName() + 
+							" has been automatically allocated and injected for Jillegal-Aware class ...");
+		
+		JillegalAwareSampleClassWrapper sampleClassWrapper = new JillegalAwareSampleClassWrapper();
+		
+		SampleClass[] objArray = sampleClassWrapper.getSampleClassArray();
+    	
+		for (int i = 0; i < objArray.length; i++) {
+    		SampleClass obj = objArray[i];
+    		obj.setOrder(i);
+    		System.out.println("Order value of auto injected off-heap object field has been set to " + i);
+    	}
+    	
+		for (int i = 0; i < objArray.length; i++) {
+			SampleClass obj = objArray[i];
+			System.out.println("Order value of " + i + ". object at off heap pool: " + obj.getOrder());
+		}
+		
+		System.out.println("\n\n");
 	}
 	
 	private static void demoLazyReferencedObjectOffHeapPool(OffHeapService offHeapService) {
@@ -401,6 +441,22 @@ public class OffHeapDemo {
 		
 		public void setSampleClass(SampleClass sampleClass) {
 			this.sampleClass = sampleClass;
+		}
+		
+	}
+	
+	@JillegalAware
+	private static class JillegalAwareSampleClassWrapper {
+		
+		@OffHeapArray(length = 1000)
+		private SampleClass[] sampleClassArray;
+		
+		public SampleClass[] getSampleClassArray() {
+			return sampleClassArray;
+		}
+		
+		public void setSampleClassArray(SampleClass[] sampleClassArray) {
+			this.sampleClassArray = sampleClassArray;
 		}
 		
 	}
