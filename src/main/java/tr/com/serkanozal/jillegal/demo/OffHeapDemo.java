@@ -42,7 +42,7 @@ public class OffHeapDemo {
 		Jillegal.init();
 	}
 	
-	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails 
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails -XX:+UnlockDiagnosticVMOptions -XX:+PrintCompressedOopsMode
 	public static void main(String[] args) throws Exception {
 		final int TEST_STEP_COUNT = 1;
 		
@@ -230,8 +230,8 @@ public class OffHeapDemo {
 								type(SampleClass.class).
 								objectCount(ELEMENT_COUNT).
 								referenceType(ObjectPoolReferenceType.LAZY_REFERENCED).
-							build());
-							
+							build());	
+		
 		System.out.println("Lazy Referenced Sequential Off Heap Object Pool for class " + 
 				SampleClass.class.getName() + " has been allocated ...");
 		

@@ -16,11 +16,11 @@ public class DirectMemoryDemo {
 		DirectMemoryService directMemoryService = DirectMemoryServiceFactory.getDirectMemoryService();
 		
 		SampleClass obj = new SampleClass();
-		
+
 		long addressOfField_b = directMemoryService.addressOfField(obj, "b");
 		long addressOfField_i = directMemoryService.addressOfField(obj, "i");
 		long addressOfField_l = directMemoryService.addressOfField(obj, "l");
-		
+
 		System.out.println("Value of b with direct memory access: " + directMemoryService.getByte(addressOfField_b));
 		System.out.println("Value of i with direct memory access: " + directMemoryService.getInt(addressOfField_i));
 		System.out.println("Value of l with direct memory access: " + directMemoryService.getLong(addressOfField_l));
@@ -31,7 +31,7 @@ public class DirectMemoryDemo {
 
 		System.out.println("Values of b, i and l are changed with direct memory access ...");
 		
-		System.out.println("Value of b with direct memory access: " + directMemoryService.getByte(addressOfField_b));
+		//System.out.println("Value of b with direct memory access: " + directMemoryService.getByte(addressOfField_b));
 		System.out.println("Value of i with direct memory access: " + directMemoryService.getInt(addressOfField_i));
 		System.out.println("Value of l with direct memory access: " + directMemoryService.getLong(addressOfField_l));
 		
