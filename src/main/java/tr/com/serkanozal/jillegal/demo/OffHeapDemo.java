@@ -15,6 +15,7 @@ import java.util.List;
 import tr.com.serkanozal.jillegal.Jillegal;
 import tr.com.serkanozal.jillegal.config.annotation.JillegalAware;
 import tr.com.serkanozal.jillegal.offheap.config.provider.annotation.OffHeapArray;
+import tr.com.serkanozal.jillegal.offheap.config.provider.annotation.OffHeapObject;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ArrayOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.DefaultExtendableObjectOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ExtendableObjectOffHeapPoolCreateParameterBuilder;
@@ -207,6 +208,8 @@ public class OffHeapDemo {
 		
 		JillegalAwareSampleClassWrapper sampleClassWrapper = new JillegalAwareSampleClassWrapper();
 		
+		sampleClassWrapper.getSampleClass().setOrder(-1);
+		
 		SampleClass[] objArray = sampleClassWrapper.getSampleClassArray();
     	
 		for (int i = 0; i < objArray.length; i++) {
@@ -214,6 +217,9 @@ public class OffHeapDemo {
     		obj.setOrder(i);
     		System.out.println("Order value of auto injected off-heap object field has been set to " + i);
     	}
+		
+		System.out.println("Order value of sample object at off heap pool: " + 
+				sampleClassWrapper.getSampleClass().getOrder());
     	
 		for (int i = 0; i < objArray.length; i++) {
 			SampleClass obj = objArray[i];
@@ -448,8 +454,19 @@ public class OffHeapDemo {
 	@JillegalAware
 	private static class JillegalAwareSampleClassWrapper {
 		
+		@OffHeapObject
+		private SampleClass sampleClass;
+		
 		@OffHeapArray(length = 1000)
 		private SampleClass[] sampleClassArray;
+		
+		public SampleClass getSampleClass() {
+			return sampleClass;
+		}
+		
+		public void setSampleClass(SampleClass sampleClass) {
+			this.sampleClass = sampleClass;
+		}
 		
 		public SampleClass[] getSampleClassArray() {
 			return sampleClassArray;

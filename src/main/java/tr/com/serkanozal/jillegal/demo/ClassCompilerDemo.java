@@ -18,10 +18,16 @@ public class ClassCompilerDemo {
 			ClassCompilerServiceFactory.getClassCompilerService();
 	
 	public static void main(String[] args) throws Exception {
-		compileAndBuildJavaCode();
+		//compileAndBuildJavaCode();
 		compileAndBuildGroovyCode();
 	}
 	
+	/**
+	 * JavaClassCompiler doesn't work due to incorrect class major/minor version 
+	 * between tools.jar and Java 8. Currently tools.jar is build on Java 6. 
+	 * As soon as possible, Java 7 and Java 8 versions of tools.jar will be added
+	 */
+	@SuppressWarnings("unused")
 	private static void compileAndBuildJavaCode() 
 			throws ClassCompileException, InstantiationException, IllegalAccessException {
 		String code = 
