@@ -23,7 +23,7 @@
     </properties>
   
   	<build>
-        <finalName>jillegal-test</finalName>
+        <finalName>jillegal-demo</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -33,6 +33,8 @@
                     <source>${source.compiler.version}</source>
                     <target>${target.compiler.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <executable>${env.JAVA8_HOME}/bin/javac</executable>
+					<fork>true</fork>
                 </configuration>
             </plugin>
             <plugin>
