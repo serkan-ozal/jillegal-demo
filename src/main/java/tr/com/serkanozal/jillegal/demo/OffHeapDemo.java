@@ -19,14 +19,19 @@ import tr.com.serkanozal.jillegal.offheap.config.provider.annotation.OffHeapObje
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ArrayOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.DefaultExtendableObjectOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ExtendableObjectOffHeapPoolCreateParameterBuilder;
+import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ExtendableStringOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.ObjectOffHeapPoolCreateParameterBuilder;
+import tr.com.serkanozal.jillegal.offheap.domain.builder.pool.StringOffHeapPoolCreateParameterBuilder;
 import tr.com.serkanozal.jillegal.offheap.domain.model.pool.ObjectOffHeapPoolCreateParameter;
 import tr.com.serkanozal.jillegal.offheap.domain.model.pool.ObjectPoolReferenceType;
 import tr.com.serkanozal.jillegal.offheap.memory.DirectMemoryService;
 import tr.com.serkanozal.jillegal.offheap.memory.DirectMemoryServiceFactory;
+import tr.com.serkanozal.jillegal.offheap.pool.DeeplyForkableStringOffHeapPool;
+import tr.com.serkanozal.jillegal.offheap.pool.StringOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.pool.impl.ComplexTypeArrayOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.pool.impl.EagerReferencedObjectOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.pool.impl.ExtendableObjectOffHeapPool;
+import tr.com.serkanozal.jillegal.offheap.pool.impl.ExtendableStringOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.pool.impl.LazyReferencedObjectOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.pool.impl.PrimitiveTypeArrayOffHeapPool;
 import tr.com.serkanozal.jillegal.offheap.service.OffHeapService;
@@ -38,6 +43,10 @@ public class OffHeapDemo {
 
 	private static final int ELEMENT_COUNT = 100000;
 	private static final int TOTAL_ELEMENT_COUNT = 10000;
+	
+	private static final int STRING_COUNT = 1000;
+	private static final int TOTAL_STRING_COUNT = 10000;
+	private static final int ESTIMATED_STRING_LENGTH = 20;
 	
 	static {
 		Jillegal.init();
@@ -77,6 +86,12 @@ public class OffHeapDemo {
 			case 9:
 				demoExtendableObjectOffHeapPoolWithDefaultObjectOffHeapPool(offHeapService);
 				break;	
+			case 10:
+				demoStringOffHeapPool(offHeapService);
+				break;	
+			case 11:
+				demoExtendableStringOffHeapPool(offHeapService);
+				break;		
 		}	
 	}
 	
@@ -433,6 +448,38 @@ public class OffHeapDemo {
     	}
     	
     	System.out.println("\n\n");
+	}
+	
+	private static void demoStringOffHeapPool(OffHeapService offHeapService) {
+		StringOffHeapPool stringPool = 
+				offHeapService.createOffHeapPool(
+						new StringOffHeapPoolCreateParameterBuilder().
+								estimatedStringCount(STRING_COUNT).
+								estimatedStringLength(ESTIMATED_STRING_LENGTH).
+							build());
+   
+    	for (int i = 0; i < STRING_COUNT; i++) {
+    		System.out.println(stringPool.get("String " + i));
+    	}
+	}
+	
+	private static void demoExtendableStringOffHeapPool(OffHeapService offHeapService) {
+		DeeplyForkableStringOffHeapPool stringPool = 
+				offHeapService.createOffHeapPool(
+						new StringOffHeapPoolCreateParameterBuilder().
+								estimatedStringCount(STRING_COUNT).
+								estimatedStringLength(ESTIMATED_STRING_LENGTH).
+							build());
+   
+		ExtendableStringOffHeapPool extendableStringPool =
+				offHeapService.createOffHeapPool(
+						new ExtendableStringOffHeapPoolCreateParameterBuilder().
+								forkableStringOffHeapPool(stringPool).
+							build());
+		
+		for (int i = 0; i < TOTAL_STRING_COUNT; i++) {
+			System.out.println(extendableStringPool.get("String " + i));
+    	}
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
