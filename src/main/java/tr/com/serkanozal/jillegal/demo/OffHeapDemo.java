@@ -170,7 +170,7 @@ public class OffHeapDemo {
 		
 		SampleLinkClass link2 = new SampleLinkClass();
 		
-		//List<SampleClass> list = new ArrayList<SampleClass>();
+//		List<SampleClass> list = new ArrayList<SampleClass>();
 
 		usedMemory1 = memoryBean.getHeapMemoryUsage().getUsed();
 		System.out.println("Used memory on heap before Off-Heap allocation: " + usedMemory1 + " bytes");
@@ -188,22 +188,20 @@ public class OffHeapDemo {
     		obj.setOrder(i);
     		obj.setLink(link2);
     		wrapper.setSampleClass(obj);
-    		//list.add(obj);
+//    		list.add(obj);
     	}
-		
+
 		SampleClass[] objArray = eagerReferencedObjectPool.getObjectArray();
     	for (int i = 0; i < objArray.length; i++) {
     		SampleClass obj = objArray[i];
     		SampleLinkClass link = obj.getLink();
     	}
+   	
+//    	for (SampleClass obj : list) {
+//    		System.out.println(obj.getOrder());
+//    	}
     	
-    	/*
-    	for (SampleClass obj : list) {
-    		System.out.println(obj.getOrder());
-    	}
-		*/
-    	
-    	//System.out.println(wrapper.getSampleClass().getOrder());
+//    	System.out.println(wrapper.getSampleClass().getOrder());
     	
 		finish = System.currentTimeMillis();
 		
