@@ -7,11 +7,40 @@
 
 package tr.com.serkanozal.jillegal.demo;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.lang.reflect.Constructor;
+import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+
+import com.sun.jdi.Bootstrap;
+import com.sun.jdi.InternalException;
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.VirtualMachineManager;
+import com.sun.jdi.connect.AttachingConnector;
+import com.sun.jdi.connect.Connector;
+import com.sun.jdi.connect.Connector.Argument;
+import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+import com.sun.jdi.connect.ListeningConnector;
+import com.sun.jdi.connect.spi.Connection;
+import com.sun.jdi.connect.spi.TransportService.ListenKey;
+import com.sun.tools.jdi.ProcessAttachingConnector;
+import com.sun.tools.jdi.SharedMemoryAttachingConnector;
+import com.sun.tools.jdi.SharedMemoryListeningConnector;
+import com.sun.tools.jdi.SocketAttachingConnector;
+import com.sun.tools.jdi.SocketListeningConnector;
+import com.sun.tools.jdi.SocketTransportService;
+
+import sun.jvm.hotspot.jdi.VirtualMachineImpl;
 import tr.com.serkanozal.jillegal.Jillegal;
 import tr.com.serkanozal.jillegal.config.annotation.JillegalAware;
 import tr.com.serkanozal.jillegal.offheap.config.provider.annotation.OffHeapArray;
@@ -47,12 +76,16 @@ public class OffHeapDemo {
 	private static final int STRING_COUNT = 1000;
 	private static final int TOTAL_STRING_COUNT = 10000;
 	private static final int ESTIMATED_STRING_LENGTH = 20;
-	
+
 	static {
 		Jillegal.init();
 	}
 	
-	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:+PrintGCDetails -XX:+UnlockDiagnosticVMOptions -XX:+PrintCompressedOopsMode
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:-UseCompressedOops -verbose:gc -XX:+PrintGCDetails -XX:+UseSerialGC
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:-UseCompressedOops -verbose:gc -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC 
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:-UseCompressedOops -verbose:gc -XX:+PrintGCDetails -XX:+UseG1GC
+	// Note that: Crashes with "-XX:+UseParallelGC"
+	// -Xms1G -Xmx1G -XX:-UseTLAB -XX:-UseCompressedOops -verbose:gc -XX:+PrintGCDetails -XX:+UseParallelGC
 	public static void main(String[] args) throws Exception {
 		final int TEST_STEP_COUNT = 1;
 		
@@ -116,19 +149,15 @@ public class OffHeapDemo {
 		
 		System.out.println("Array for class with size " + ELEMENT_COUNT + " for class " +  
 				SampleClass.class.getName() + " has been allocated ...");
-		
-		SampleLinkClass link1 = new SampleLinkClass();
-		
+
 		for (int i = 0; i < ELEMENT_COUNT; i++) {
     		SampleClass obj = new SampleClass();
     		obj.setOrder(i);
-    		obj.setLink(link1);
     		array[i] = obj;
     	}
 		
 		for (int i = 0; i < ELEMENT_COUNT; i++) {
     		SampleClass obj = array[i];
-    		SampleLinkClass link = obj.getLink();
     	}
 
 		finish = System.currentTimeMillis();
@@ -165,12 +194,6 @@ public class OffHeapDemo {
 		offHeapService.newObject(SampleClass.class);
 
 		DirectMemoryService directMemoryService = DirectMemoryServiceFactory.getDirectMemoryService();
-		
-		SampleClassWrapper wrapper = new SampleClassWrapper();
-		
-		SampleLinkClass link2 = new SampleLinkClass();
-		
-//		List<SampleClass> list = new ArrayList<SampleClass>();
 
 		usedMemory1 = memoryBean.getHeapMemoryUsage().getUsed();
 		System.out.println("Used memory on heap before Off-Heap allocation: " + usedMemory1 + " bytes");
@@ -186,23 +209,13 @@ public class OffHeapDemo {
 		for (int i = 0; i < ELEMENT_COUNT; i++) {
 			SampleClass obj = eagerReferencedObjectPool.get();
     		obj.setOrder(i);
-    		obj.setLink(link2);
-    		wrapper.setSampleClass(obj);
-//    		list.add(obj);
     	}
 
 		SampleClass[] objArray = eagerReferencedObjectPool.getObjectArray();
     	for (int i = 0; i < objArray.length; i++) {
     		SampleClass obj = objArray[i];
-    		SampleLinkClass link = obj.getLink();
     	}
-   	
-//    	for (SampleClass obj : list) {
-//    		System.out.println(obj.getOrder());
-//    	}
-    	
-//    	System.out.println(wrapper.getSampleClass().getOrder());
-    	
+
 		finish = System.currentTimeMillis();
 		
 		System.out.println("Sequential Off Heap Object Pool for class " + 
@@ -217,7 +230,7 @@ public class OffHeapDemo {
 	
 	private static void demoJillegalAwareOffHeap(OffHeapService offHeapService) throws Exception {
 		System.out.println("Object Array Off-Heap Pool for class " + SampleClass.class.getName() + 
-							" has been automatically allocated and injected for Jillegal-Aware class ...");
+				" has been automatically allocated and injected for Jillegal-Aware class ...");
 		
 		JillegalAwareSampleClassWrapper sampleClassWrapper = new JillegalAwareSampleClassWrapper();
 		
@@ -528,7 +541,6 @@ public class OffHeapDemo {
 		private int i1 = 5;
 		private int i2 = 10;
 		private int order;
-		private SampleLinkClass link;
 
 		public int getI1() {
 			return i1;
@@ -545,29 +557,7 @@ public class OffHeapDemo {
 		public void setOrder(int order) {
 			this.order = order;
 		}
-		
-		public SampleLinkClass getLink() {
-			return link;
-		}
-		
-		public void setLink(SampleLinkClass link) {
-			this.link = link;
-		}
 
 	}
-	
-	private static class SampleLinkClass {
-		
-		private long linkNo;
 
-		public long getLinkNo() {
-			return linkNo;
-		}
-		
-		public void setLinkNo(long linkNo) {
-			this.linkNo = linkNo;
-		}
-
-	}
-	
 }
